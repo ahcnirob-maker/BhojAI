@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="bn">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ভোজএআই</title>
+    <meta name="description" content="বাঙালি খাবারের ছবি থেকে ক্যালরি ও পুষ্টির আনুমানিক হিসাব।" />
+    <meta name="theme-color" content="#1b4332" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <style>
+      @font-face {
+        font-family: "Anek Bangla";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("/fonts/anek-bangla-bengali-400-normal.woff2") format("woff2");
+        unicode-range: U+0980-09FF, U+0964-0965, U+200C-200D, U+25CC;
+      }
+      @font-face {
+        font-family: "Anek Bangla";
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url("/fonts/anek-bangla-bengali-600-normal.woff2") format("woff2");
+        unicode-range: U+0980-09FF, U+0964-0965, U+200C-200D, U+25CC;
+      }
+      @font-face {
+        font-family: "Anek Bangla";
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url("/fonts/anek-bangla-bengali-700-normal.woff2") format("woff2");
+        unicode-range: U+0980-09FF, U+0964-0965, U+200C-200D, U+25CC;
+      }
+      @font-face {
+        font-family: "Anek Bangla";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("/fonts/anek-bangla-latin-400-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: "Anek Bangla";
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url("/fonts/anek-bangla-latin-600-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: "Anek Bangla";
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url("/fonts/anek-bangla-latin-700-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+
+      :root {
+        --ink: #1e2420;
+        --muted: #5e675f;
+        --cream: #f6f1e6;
+        --clay: #e4d8c4;
+        --card: #fffaf3;
+        --line: #eadfcd;
+        --leaf: #1b4332;
+        --leaf-deep: #143528;
+        --gold: #f3c27a;
+        --turmeric: #c5811a;
+        --clay-red: #6e2c22;
+        --danger-bg: #f8e8e2;
+        --danger-line: #e7c7bd;
+        --shadow: 0 14px 34px rgba(48, 36, 16, 0.08);
+        --font: "Anek Bangla", "Noto Sans Bengali", sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { margin: 0; }
+      body {
+        min-height: 100dvh;
+        background: var(--clay);
+        color: var(--ink);
+        font-family: var(--font);
+        font-size: 1.0625rem;
+        line-height: 1.5;
+      }
+      img { max-width: 100%; display: block; }
+      [hidden] { display: none !important; }
+
+      #bhojai {
+        width: min(480px, 100%);
+        min-height: 100dvh;
+        margin: 0 auto;
+        background: var(--cream);
+      }
+
+      .hero {
+        background-color: var(--leaf);
+        background-image: radial-gradient(rgba(255, 250, 240, 0.09) 1px, transparent 1px);
+        background-size: 16px 16px;
+        color: var(--cream);
+        padding: 26px 20px 42px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .mark { width: 44px; height: 44px; flex: none; }
+      .brand-en {
+        margin: 0;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--gold);
+      }
+      h1 {
+        margin: 0;
+        font-size: 2.15rem;
+        line-height: 1.15;
+        font-weight: 700;
+      }
+      .tag {
+        margin: 12px 0 0;
+        max-width: 18rem;
+        color: rgba(246, 241, 230, 0.86);
+        font-size: 1.08rem;
+      }
+
+      .sheet {
+        position: relative;
+        margin-top: -22px;
+        padding: 18px 16px 96px;
+        border-radius: 26px 26px 0 0;
+        background: var(--cream);
+      }
+
+      .stage {
+        position: relative;
+        overflow: hidden;
+        min-height: 232px;
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background: #fbf6ec;
+        box-shadow: var(--shadow);
+      }
+      .plate {
+        width: 168px;
+        height: 168px;
+        margin: 28px auto 8px;
+        position: relative;
+      }
+      .plate-rim {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: radial-gradient(circle at 50% 40%, #fffdf8 0 46%, #efe4d0 48% 72%, #e4d3b6 73% 100%);
+        box-shadow: inset 0 8px 14px rgba(255, 255, 255, 0.75), 0 12px 22px rgba(60, 42, 18, 0.08);
+      }
+      .plate-well {
+        position: absolute;
+        inset: 36px;
+        border-radius: 50%;
+        border: 1px solid rgba(140, 110, 60, 0.2);
+      }
+      .stage-caption {
+        margin: 0 20px 22px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 1rem;
+      }
+      #preview {
+        width: 100%;
+        max-height: 420px;
+        object-fit: cover;
+        background: #ddd4c2;
+      }
+      .loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 14px 16px 16px;
+        color: var(--leaf);
+        font-weight: 700;
+        font-size: 1.15rem;
+      }
+      .spinner {
+        width: 18px;
+        height: 18px;
+        border: 2.5px solid rgba(27, 67, 50, 0.2);
+        border-top-color: var(--leaf);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 14px;
+      }
+      .actions.is-busy .shoot {
+        opacity: 0.62;
+        pointer-events: none;
+      }
+      .shoot {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+        min-height: 76px;
+        padding: 10px 8px;
+        border: 2px solid var(--leaf);
+        border-radius: 18px;
+        background: var(--leaf);
+        color: var(--cream);
+        font-family: inherit;
+        font-size: 1.28rem;
+        font-weight: 700;
+        line-height: 1.1;
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+      .shoot svg { width: 26px; height: 26px; flex: none; }
+      .shoot-alt {
+        background: transparent;
+        color: var(--leaf);
+      }
+      .shoot:focus-visible {
+        outline: 3px solid var(--turmeric);
+        outline-offset: 3px;
+      }
+      @media (hover: hover) {
+        .shoot:hover { background: var(--leaf-deep); color: var(--cream); }
+        .shoot-alt:hover { background: #e7f2eb; color: var(--leaf-deep); }
+      }
+      .shoot:active { transform: translateY(1px); }
+      .file-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+      .portions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        margin: 14px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+      .portions li {
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: #efe6d4;
+        color: var(--leaf-deep);
+        font-weight: 600;
+        font-size: 0.98rem;
+      }
+
+      .error {
+        margin: 14px 0 0;
+        padding: 12px 14px;
+        border: 1px solid var(--danger-line);
+        border-radius: 14px;
+        background: var(--danger-bg);
+        color: var(--clay-red);
+        font-weight: 600;
+      }
+
+      .results { margin-top: 22px; }
+      .results h2 {
+        margin: 0 0 12px;
+        font-size: 1.35rem;
+        line-height: 1.3;
+      }
+      .card {
+        margin-bottom: 12px;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--card);
+      }
+      .card-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .name-bn {
+        margin: 0;
+        font-size: 1.4rem;
+        line-height: 1.25;
+        font-weight: 700;
+      }
+      .name-en {
+        margin: 2px 0 0;
+        color: var(--muted);
+        font-size: 1rem;
+      }
+      .cal {
+        flex: none;
+        text-align: right;
+      }
+      .cal strong {
+        display: block;
+        color: var(--turmeric);
+        font-size: 1.7rem;
+        line-height: 1;
+        font-weight: 700;
+      }
+      .cal span {
+        color: var(--muted);
+        font-size: 0.86rem;
+        font-weight: 600;
+      }
+      .portion {
+        display: inline-block;
+        margin: 10px 0 0;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: #e7f2eb;
+        color: var(--leaf);
+        font-weight: 700;
+        font-size: 0.98rem;
+      }
+      .macros {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin: 12px 0 0;
+      }
+      .macros div {
+        padding: 8px 6px;
+        border-radius: 12px;
+        background: #f6f0e4;
+        text-align: center;
+      }
+      .macros dt {
+        color: var(--muted);
+        font-size: 0.86rem;
+        font-weight: 600;
+      }
+      .macros dd {
+        margin: 2px 0 0;
+        font-size: 1.05rem;
+        font-weight: 700;
+      }
+
+      .total {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 6px;
+        padding: 18px 18px 16px;
+        border-radius: 20px;
+        background: var(--leaf);
+        color: var(--cream);
+      }
+      .total-kicker, .total-unit { margin: 0; }
+      .total-kicker {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--gold);
+      }
+      .total-unit { font-size: 1.2rem; font-weight: 700; }
+      .total-num {
+        margin: 0;
+        font-size: 3.1rem;
+        line-height: 0.9;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+      }
+      .confidence {
+        margin: 10px 2px 0;
+        color: var(--muted);
+        font-size: 0.98rem;
+      }
+      .note {
+        margin: 18px 2px 0;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      @media (min-width: 540px) {
+        body { padding: 28px 16px 40px; }
+        #bhojai {
+          min-height: auto;
+          border-radius: 28px;
+          overflow: hidden;
+          box-shadow: 0 20px 50px rgba(48, 36, 16, 0.12);
+        }
+        .sheet { border-radius: 26px 26px 28px 28px; }
+      }
+      @media (max-width: 539px) {
+        body { background: var(--cream); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .spinner { animation: none; }
+        .shoot:active { transform: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <main id="bhojai">
+      <header class="hero">
+        <div class="brand">
+          <svg class="mark" viewBox="0 0 36 36" aria-hidden="true">
+            <rect width="36" height="36" rx="11" fill="#143528" />
+            <circle cx="18" cy="19" r="9" fill="none" stroke="#f3c27a" stroke-width="1.7" />
+            <path d="M18 12.2c2.1 2.6 2.1 5.4 0 8.2-2.1-2.8-2.1-5.6 0-8.2z" fill="#d8efe0" />
+          </svg>
+          <div>
+            <p class="brand-en">BhojAI</p>
+            <h1>ভোজএআই</h1>
+          </div>
+        </div>
+        <p class="tag">থালার ছবি তুলুন। বাটি, প্লেট, পিস বা চামচ ধরে ক্যালরি বের করবে।</p>
+      </header>
+
+      <section class="sheet">
+        <div class="stage" id="stage">
+          <div id="plate">
+            <div class="plate" aria-hidden="true">
+              <span class="plate-rim"></span>
+              <span class="plate-well"></span>
+            </div>
+            <p class="stage-caption">ভাত, তরকারি, মাছ — যা আছে থালায়</p>
+          </div>
+          <img id="preview" alt="তোলা খাবারের ছবি" hidden />
+          <div id="loading" class="loading" hidden>
+            <span class="spinner" aria-hidden="true"></span>
+            <span>বিশ্লেষণ হচ্ছে...</span>
+          </div>
+        </div>
+
+        <div class="actions" id="actions">
+          <label class="shoot" for="photo-camera">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M8 7.5 9.2 5.8A1.5 1.5 0 0 1 10.4 5h3.2a1.5 1.5 0 0 1 1.2.8L16 7.5h2.2A1.8 1.8 0 0 1 20 9.3v8.4a1.8 1.8 0 0 1-1.8 1.8H5.8A1.8 1.8 0 0 1 4 17.7V9.3A1.8 1.8 0 0 1 5.8 7.5H8Z" stroke="currentColor" stroke-width="1.7" />
+              <circle cx="12" cy="13" r="3.1" stroke="currentColor" stroke-width="1.7" />
+            </svg>
+            <span>ক্যামেরা</span>
+          </label>
+          <input id="photo-camera" class="file-input" type="file" accept="image/*" capture="environment" />
+          <label class="shoot shoot-alt" for="photo-gallery">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="3.5" y="5" width="13" height="11" rx="2" stroke="currentColor" stroke-width="1.7" />
+              <path d="M7.5 16.2 9.2 18h9.1A1.7 1.7 0 0 0 20 16.3V8.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+            </svg>
+            <span>গ্যালারি</span>
+          </label>
+          <input id="photo-gallery" class="file-input" type="file" accept="image/*" />
+        </div>
+        <ul class="portions">
+          <li>বাটি</li>
+          <li>প্লেট</li>
+          <li>পিস</li>
+          <li>চামচ</li>
+        </ul>
+
+        <p id="error" class="error" role="alert" hidden></p>
+
+        <section id="results" class="results" hidden>
+          <h2>এই থালায়</h2>
+          <div id="cards"></div>
+          <div class="total">
+            <div>
+              <p class="total-kicker">মোট</p>
+              <p class="total-unit">ক্যালরি</p>
+            </div>
+            <p id="total-num" class="total-num">০</p>
+          </div>
+          <p id="confidence" class="confidence"></p>
+        </section>
+
+        <p class="note">এটি আনুমানিক হিসাব, চিকিৎসা পরামর্শ নয়।</p>
+      </section>
+    </main>
+    <script>
+      (function () {
+        var CONF = {
+          low: "নিশ্চয়তা কম — আলো বা কোণ বদলালে হিসাব বদলাতে পারে",
+          medium: "মোটামুটি নিশ্চিত অনুমান",
+          high: "ছবি পরিষ্কার, হিসাব বেশ কাছাকাছি",
+        };
+
+        function byId(id) {
+          return document.getElementById(id);
+        }
+
+        function analyzeUrl() {
+          var path = window.location.pathname || "/";
+          var match = path.match(/^(\/hds-[a-z0-9]+-\d+-[a-z0-9]+)/i);
+          return (match ? match[1] : "") + "/api/analyze";
+        }
+
+        function friendly(err) {
+          var msg = err && err.message ? String(err.message) : "";
+          if (/Failed to fetch|NetworkError|Load failed/i.test(msg)) {
+            return "সংযোগ হয়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।";
+          }
+          if (/[\u0980-\u09FF]/.test(msg)) return msg;
+          return "কিছু একটা গণ্ডগোল হয়েছে। আরেকবার চেষ্টা করুন।";
+        }
+
+        function formatNum(value, digits) {
+          var n = Number(value);
+          if (!isFinite(n)) n = 0;
+          return new Intl.NumberFormat("bn-BD", {
+            maximumFractionDigits: digits,
+            minimumFractionDigits: 0,
+          }).format(n);
+        }
+
+        function resizeImage(file) {
+          return new Promise(function (resolve, reject) {
+            var url = URL.createObjectURL(file);
+            var img = new Image();
+            img.onload = function () {
+              URL.revokeObjectURL(url);
+              var scale = Math.min(1, 1024 / Math.max(img.width, img.height));
+              var width = Math.max(1, Math.round(img.width * scale));
+              var height = Math.max(1, Math.round(img.height * scale));
+              var canvas = document.createElement("canvas");
+              canvas.width = width;
+              canvas.height = height;
+              var ctx = canvas.getContext("2d");
+              if (!ctx) {
+                reject(new Error("bad-image"));
+                return;
+              }
+              ctx.fillStyle = "#ffffff";
+              ctx.fillRect(0, 0, width, height);
+              ctx.drawImage(img, 0, 0, width, height);
+              var dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+              resolve({
+                dataUrl: dataUrl,
+                base64: (dataUrl.split(",")[1] || ""),
+                mimeType: "image/jpeg",
+              });
+            };
+            img.onerror = function () {
+              URL.revokeObjectURL(url);
+              reject(new Error("bad-image"));
+            };
+            img.src = url;
+          });
+        }
+
+        function showError(message) {
+          var node = byId("error");
+          node.textContent = message;
+          node.hidden = false;
+        }
+
+        function clearError() {
+          var node = byId("error");
+          node.textContent = "";
+          node.hidden = true;
+        }
+
+        function renderResult(data) {
+          var cards = byId("cards");
+          cards.replaceChildren();
+          (data.items || []).forEach(function (item) {
+            var card = document.createElement("article");
+            card.className = "card";
+
+            var top = document.createElement("div");
+            top.className = "card-top";
+            var names = document.createElement("div");
+            var bn = document.createElement("h3");
+            bn.className = "name-bn";
+            bn.textContent = item.name_bn || "খাবার";
+            var en = document.createElement("p");
+            en.className = "name-en";
+            en.textContent = item.name_en || "";
+            names.append(bn, en);
+
+            var cal = document.createElement("div");
+            cal.className = "cal";
+            var strong = document.createElement("strong");
+            strong.textContent = formatNum(item.calories, 0);
+            var unit = document.createElement("span");
+            unit.textContent = "ক্যালরি";
+            cal.append(strong, unit);
+            top.append(names, cal);
+
+            var portion = document.createElement("p");
+            portion.className = "portion";
+            portion.textContent = item.portion || "";
+
+            var macros = document.createElement("dl");
+            macros.className = "macros";
+            [
+              ["প্রোটিন", item.protein_g],
+              ["কার্ব", item.carbs_g],
+              ["ফ্যাট", item.fat_g],
+            ].forEach(function (pair) {
+              var wrap = document.createElement("div");
+              var dt = document.createElement("dt");
+              dt.textContent = pair[0];
+              var dd = document.createElement("dd");
+              dd.textContent = formatNum(pair[1], 1) + "g";
+              wrap.append(dt, dd);
+              macros.append(wrap);
+            });
+
+            card.append(top, portion, macros);
+            cards.append(card);
+          });
+
+          byId("total-num").textContent = formatNum(data.total_calories, 0);
+          byId("confidence").textContent = CONF[data.confidence] || CONF.medium;
+          var results = byId("results");
+          results.hidden = false;
+          var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          results.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "nearest" });
+        }
+
+        window.initBhojai = function initBhojai() {
+          var camera = byId("photo-camera");
+          var gallery = byId("photo-gallery");
+          var actions = byId("actions");
+          if (!camera || !gallery || !actions || camera.dataset.bound === "1") return function () {};
+          camera.dataset.bound = "1";
+          var busy = false;
+
+          function setBusy(on) {
+            busy = on;
+            actions.classList.toggle("is-busy", on);
+            var buttons = actions.querySelectorAll(".shoot");
+            for (var i = 0; i < buttons.length; i++) {
+              buttons[i].setAttribute("aria-disabled", on ? "true" : "false");
+            }
+            byId("loading").hidden = !on;
+            byId("stage").setAttribute("aria-busy", on ? "true" : "false");
+          }
+
+          async function onPick(event) {
+            var input = event.currentTarget;
+            var file = input.files && input.files[0];
+            input.value = "";
+            if (!file || busy) return;
+            if (file.type && file.type.indexOf("image/") !== 0) {
+              showError("এই ছবির ফরম্যাট পড়া যায়নি। জেপেগ বা পিএনজি দিন।");
+              return;
+            }
+            clearError();
+            byId("results").hidden = true;
+            setBusy(true);
+            try {
+              var resized = await resizeImage(file);
+              var preview = byId("preview");
+              preview.src = resized.dataUrl;
+              preview.hidden = false;
+              byId("plate").hidden = true;
+              var response = await fetch(analyzeUrl(), {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ image: resized.base64, mimeType: resized.mimeType }),
+              });
+              var data = await response.json().catch(function () { return {}; });
+              if (!response.ok || data.error) {
+                throw new Error(data.error || "এখন বিশ্লেষণ করা যায়নি। একটু পরে আবার চেষ্টা করুন।");
+              }
+              renderResult(data);
+            } catch (err) {
+              if (err && err.message === "bad-image") {
+                showError("এই ছবির ফরম্যাট পড়া যায়নি। জেপেগ বা পিএনজি দিন।");
+              } else {
+                showError(friendly(err));
+              }
+            } finally {
+              setBusy(false);
+            }
+          }
+
+          camera.addEventListener("change", onPick);
+          gallery.addEventListener("change", onPick);
+          return function cleanup() {
+            camera.removeEventListener("change", onPick);
+            gallery.removeEventListener("change", onPick);
+            delete camera.dataset.bound;
+          };
+        };
+
+        if (!window.__BHOJAI_EMBED__) window.initBhojai();
+      })();
+    </script>
+  </body>
+</html>
