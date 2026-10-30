@@ -4,7 +4,7 @@
  * The key is read only on the server — never send it to the browser.
  */
 
-const GEMINI_MODEL = "gemini-flash-latest";
+const GEMINI_MODEL = "gemini-2.5-flash";
 const GROK_MODEL = "grok-4.7";
 const MAX_IMAGE_CHARS = 1_800_000;
 
@@ -67,16 +67,17 @@ function json(body, status) {
 /**
  * @param {string} url
  * @param {RequestInit} options
- * @param {{ fullError?: boolean }} [logOptions]
+ * @param {{ fullError?: boolean, timeoutMs?: number }} [logOptions]
  * @returns {Promise<any>}
  */
 async function postJson(url, options, logOptions) {
   const fullError = Boolean(logOptions && logOptions.fullError);
+  const timeoutMs = logOptions && logOptions.timeoutMs ? logOptions.timeoutMs : 28_000;
   let lastStatus = 0;
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const response = await fetch(url, {
       ...options,
-      signal: AbortSignal.timeout(28_000),
+      signal: AbortSignal.timeout(timeoutMs),
     });
     if (response.ok) return response.json();
     lastStatus = response.status;
@@ -217,11 +218,11 @@ async function callGemini(mimeType, base64) {
           temperature: 0.2,
           maxOutputTokens: 2048,
           responseMimeType: "application/json",
-          thinkingConfig: { thinkingLevel: "low" },
+          thinkingConfig: { thinkingBudget: 0 },
         },
       }),
     },
-    { fullError: true },
+    { fullError: true, timeoutMs: 45_000 },
   );
   const parts = /** @type {Array<{ thought?: boolean, text?: unknown }>} */ (
     data?.candidates?.[0]?.content?.parts ?? []
@@ -315,7 +316,7 @@ async function callGrok(mimeType, base64) {
             { type: "input_text", text: USER_TEXT },
             {
               type: "input_image",
-              image_url: `data:\( {mimeType};base64, \){base64}`,
+              image_url: `data:${mimeType};base64,${base64}`,
             },
           ],
         },
